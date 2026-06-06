@@ -7,7 +7,9 @@ use App\Models\Service;
 use App\Models\Customer;
 use App\Actions\CreateAppointmentAction;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -39,7 +41,18 @@ class BookingController extends Controller
 
         $validated['customer_id'] = $customer->id;
 
-        $appointment = $createAction->execute($validated);
+        try {
+            $appointment = $createAction->execute($validated);
+        } catch (ModelNotFoundException $e) {
+            return back()->withInput()->withErrors([
+                'general' => 'The selected branch, staff, or service could not be found. Please try again.',
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Booking creation failed', ['error' => $e->getMessage(), 'data' => $validated]);
+            return back()->withInput()->withErrors([
+                'general' => 'Something went wrong while booking your appointment. Please try again.',
+            ]);
+        }
 
         return redirect()->route('booking.success')->with('appointment_id', $appointment->id);
     }

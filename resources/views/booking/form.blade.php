@@ -11,8 +11,12 @@
     <h1 class="text-2xl font-bold mb-6">Book an Appointment</h1>
 
     @if ($errors->any())
-        <div class="bg-red-100 text-red-700 p-4 rounded mb-4">
-            <ul>@foreach ($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+        <div class="bg-red-100 border border-red-300 text-red-700 p-4 rounded mb-4">
+            <ul class="list-disc list-inside space-y-1">
+                @foreach ($errors->all() as $e)
+                    <li>{{ $e }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 
@@ -22,24 +26,27 @@
         <div class="mb-4">
             <label class="block font-medium mb-1">Your Name</label>
             <input type="text" name="name" value="{{ old('name') }}"
-                   class="w-full border rounded p-2" required>
+                   class="w-full border rounded p-2 {{ $errors->has('name') ? 'border-red-500' : '' }}" required>
+            @error('name') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">Email</label>
             <input type="email" name="email" value="{{ old('email') }}"
-                   class="w-full border rounded p-2">
+                   class="w-full border rounded p-2 {{ $errors->has('email') ? 'border-red-500' : '' }}">
+            @error('email') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">Phone</label>
             <input type="text" name="phone" value="{{ old('phone') }}"
-                   class="w-full border rounded p-2" placeholder="+60123456789">
+                   class="w-full border rounded p-2 {{ $errors->has('phone') ? 'border-red-500' : '' }}" placeholder="+60123456789">
+            @error('phone') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">Branch</label>
-            <select name="branch_id" class="w-full border rounded p-2" required
+            <select name="branch_id" class="w-full border rounded p-2 {{ $errors->has('branch_id') ? 'border-red-500' : '' }}" required
                     onchange="filterStaff(this.value)">
                 <option value="">Select branch...</option>
                 @foreach ($branches as $branch)
@@ -48,18 +55,20 @@
                     </option>
                 @endforeach
             </select>
+            @error('branch_id') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">Staff Member</label>
-            <select name="user_id" id="staff-select" class="w-full border rounded p-2" required>
+            <select name="user_id" id="staff-select" class="w-full border rounded p-2 {{ $errors->has('user_id') ? 'border-red-500' : '' }}" required>
                 <option value="">Select staff...</option>
             </select>
+            @error('user_id') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">Service</label>
-            <select name="service_id" class="w-full border rounded p-2" required>
+            <select name="service_id" class="w-full border rounded p-2 {{ $errors->has('service_id') ? 'border-red-500' : '' }}" required>
                 <option value="">Select service...</option>
                 @foreach ($services as $service)
                     <option value="{{ $service->id }}">
@@ -67,12 +76,14 @@
                     </option>
                 @endforeach
             </select>
+            @error('service_id') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <div class="mb-4">
             <label class="block font-medium mb-1">Preferred Date & Time</label>
             <input type="text" id="datetime-picker" name="starts_at" value="{{ old('starts_at') }}"
-                class="w-full border rounded p-2 bg-white" required placeholder="Select Date & Time...">
+                class="w-full border rounded p-2 bg-white {{ $errors->has('starts_at') ? 'border-red-500' : '' }}" required placeholder="Select Date & Time...">
+            @error('starts_at') <p class="text-red-600 text-sm mt-1">{{ $message }}</p> @enderror
         </div>
 
         <button type="submit"
