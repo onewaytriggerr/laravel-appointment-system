@@ -4,11 +4,13 @@ A multi-branch appointment booking system built as a Laravel assessment. It has 
 
 ## Stack
 
-Framework      | Laravel 13.8
-PHP            | 8.3
-Admin UI       | Filament 5.x
-Database       | SQLite (default) / MySQL
-Frontend build | Vite 8 + Tailwind CSS 4
+| Component | Technology |
+| :--- | :--- |
+| **Framework** | Laravel 13.8 |
+| **PHP** | 8.3 |
+| **Admin UI** | Filament 5.x |
+| **Database** | SQLite (default) / MySQL |
+| **Frontend Build** | Vite 8 + Tailwind CSS 4 |
 
 ---
 
