@@ -8,6 +8,7 @@ use App\Models\Appointment;
 use App\Models\Branch;
 use App\Models\User;
 use App\Models\Service;
+use App\Models\StaffWorkingHours;
 use App\Enums\AppointmentStatus;
 
 class ValidateAppointmentAction
@@ -16,6 +17,7 @@ class ValidateAppointmentAction
      * Validates the proposed appointment time against business rules:
      * - Staff belongs to the branch
      * - Appointment falls within branch operating hours
+     * - (Optional) Validate against staff's working hours if present only
      * - No overlapping appointments for the staff
      * - (Optional) Excludes a specific appointment ID (useful when updating an existing appointment)
      * Returns the calculated end time based on service duration if validation passes.
@@ -41,7 +43,10 @@ class ValidateAppointmentAction
         // 3. Validate operating hours
         $this->validateOperatingHours($startsAt, $endsAt, $branch);
 
-        // 4. Validate no overlap with existing appointments
+        // 4. Validate staff working hours (optional)
+        $this->validateStaffWorkingHours($staff, $startsAt, $endsAt, $branch);
+
+        // 5. Validate no overlap with existing appointments
         $this->validateNoOverlap($startsAt, $endsAt, $staff, $excludeAppointmentId);
 
         return $endsAt;
@@ -110,6 +115,52 @@ class ValidateAppointmentAction
         if ($overlapExists) {
             throw ValidationException::withMessages([
                 'starts_at' => 'This staff member already has an appointment during this time.',
+            ]);
+        }
+    }
+
+    private function validateStaffWorkingHours(
+        User $staff,
+        Carbon $startsAt,
+        Carbon $endsAt,
+        Branch $branch
+    ): void {
+        // 1. Check if staff working hours exists, if not return
+        if ($staff->workingHours()->doesntExist()) {
+            return;
+        }
+
+        // Convert UTC times to branch local timezone for comparison
+        $branchTimeZone = $branch->timezone;
+        $localStart     = $startsAt->copy()->setTimezone($branchTimeZone);
+        $localEnd       = $endsAt->copy()->setTimezone($branchTimeZone);
+
+        // Get day of week
+        $dayOfWeek = $localStart->dayOfWeek();
+
+        // 2. Check if staff is working on the appointment day
+        $staffWorkingHour = $staff->workingHours()->where('day_of_week', $dayOfWeek)->first();
+
+        // Throws validation exception if staff is not working on this day
+        if ($staffWorkingHour === null) {
+            throw ValidationException::withMessages([
+                'starts_at' => 'This staff member does not work on this day.',
+            ]);
+        }
+
+        // 3. Check if staff is working within the appointment time
+        $staffStartTime = Carbon::parse($localStart->toDateString() . ' ' . $staffWorkingHour->start_time, $branchTimeZone);
+        $staffEndTime = Carbon::parse($localStart->toDateString() . ' ' . $staffWorkingHour->end_time, $branchTimeZone);
+
+        // Check if appointment falls within staff's working hours
+        if ($localStart->lt($staffStartTime) || $localEnd->gt($staffEndTime)) {
+            throw ValidationException::withMessages([
+                'starts_at' => sprintf(
+                    "The appointment must fall entirely within staff's working hours (%s - %s %s).",
+                    $staffWorkingHour->start_time,
+                    $staffWorkingHour->end_time,
+                    $branchTimeZone
+                ),
             ]);
         }
     }

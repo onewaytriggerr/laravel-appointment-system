@@ -11,6 +11,7 @@ use Filament\Models\Contracts\FilamentUser;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Models\StaffWorkingHours;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -45,6 +46,12 @@ class User extends Authenticatable implements FilamentUser
     public function appointments(): HasMany
     {
         return $this->hasMany(Appointment::class);
+    }
+
+    // Staff can have many working hours
+    public function workingHours(): HasMany
+    {
+        return $this->hasMany(StaffWorkingHours::class);
     }
 
     // Check if the user is an admin

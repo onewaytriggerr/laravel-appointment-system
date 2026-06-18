@@ -6,6 +6,7 @@ use App\Filament\Resources\Users\Pages\CreateUser;
 use App\Filament\Resources\Users\Pages\EditUser;
 use App\Filament\Resources\Users\Pages\ListUsers;
 use App\Models\User;
+use App\Models\StaffWorkingHours;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -13,12 +14,16 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\TimePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\EditAction;
 use Filament\Actions\DeleteAction;
 use App\Models\Branch;
 use App\Enums\UserRole;
+use App\Enums\DayOfWeek;
 use Filament\Schemas\Components\Utilities\Get;
+
 
 
 class UserResource extends Resource
@@ -58,8 +63,26 @@ class UserResource extends Resource
                 ->label('Branch')
                 ->options(Branch::pluck('name', 'id'))
                 ->nullable()
-                ->visible(fn (Get $get): bool => $get('role') === UserRole::Staff->value) // Only show branch selection for staff users
-                ->required(fn (Get $get): bool => $get('role') === UserRole::Staff->value),
+                ->visible(fn (Get $get): bool => in_array($get('role'), [UserRole::Staff, UserRole::Staff->value], true)) // Only show branch selection for staff users
+                ->required(fn (Get $get): bool => in_array($get('role'), [UserRole::Staff, UserRole::Staff->value], true)),
+
+            Repeater::make('workingHours')
+                ->relationship()
+                ->schema([
+                    Select::make('day_of_week')
+                        ->options(DayOfWeek::class)
+                        ->required(),
+
+                    TimePicker::make('start_time')
+                        ->required()
+                        ->seconds(false),
+
+                    TimePicker::make('end_time')
+                        ->required()
+                        ->seconds(false),
+                ])
+                ->visible(fn (Get $get): bool => in_array($get('role'), [UserRole::Staff, UserRole::Staff->value], true)) // Only show when staff role is selected
+                ->columns(3),
         ]);
     }
 

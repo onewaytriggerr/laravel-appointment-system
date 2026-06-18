@@ -10,6 +10,7 @@ use App\Actions\CreateAppointmentAction;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class BookingController extends Controller
 {
@@ -43,6 +44,8 @@ class BookingController extends Controller
 
         try {
             $appointment = $createAction->execute($validated);
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (ModelNotFoundException $e) {
             return back()->withInput()->withErrors([
                 'general' => 'The selected branch, staff, or service could not be found. Please try again.',
